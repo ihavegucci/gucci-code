@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gucci Code</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --ink:#16181d; --dim:#6b7280; --line:#e3e6ea;
+    --pend:#c3c8d0; --act:#2f6fed; --done:#1f9d55; --warn:#d97706; --bad:#dc2626;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#0e1014; --card:#161a21; --ink:#e8eaee; --dim:#8b93a1; --line:#252b34;
+           --pend:#3a424e; --act:#4b86f7; --done:#35b96a; --warn:#e0913a; --bad:#ef5350; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:22px 18px 40px;background:var(--bg);color:var(--ink);
+       font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,sans-serif}
+  .wrap{max-width:820px;margin:0 auto}
+  h1{font-size:21px;margin:0 0 4px;font-weight:650;letter-spacing:-.01em}
+  .sub{color:var(--dim);font-size:13px;margin-bottom:18px}
+  .sub b{color:var(--ink);font-weight:600}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+        padding:16px 18px;margin-bottom:14px}
+  .stages{display:flex;gap:6px;flex-wrap:wrap}
+  .st{flex:1 1 92px;min-width:92px;padding:9px 10px;border-radius:9px;
+      background:var(--bg);border:1px solid var(--line);text-align:center}
+  .st .nm{font-size:13px;font-weight:600}
+  .st .tm{font-size:11px;color:var(--dim);margin-top:2px;min-height:14px}
+  .st.active{border-color:var(--act);box-shadow:inset 0 0 0 1px var(--act)}
+  .st.active .nm{color:var(--act)}
+  .st.done .nm{color:var(--done)}
+  .st.skipped .nm{color:var(--dim);text-decoration:line-through}
+  .st.pending .nm{color:var(--pend)}
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);
+     margin:0 0 10px;font-weight:600}
+  .chunk{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
+  .chunk:first-child,.wave+.chunk{border-top:0}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--pend);margin-top:6px;flex:none}
+  .chunk.in-progress .dot{background:var(--act);animation:p 1.4s ease-in-out infinite}
+  .chunk.done .dot{background:var(--done)}
+  .chunk.repair .dot{background:var(--warn)}
+  .chunk.blocked .dot{background:var(--bad)}
+  @keyframes p{0%,100%{opacity:1}50%{opacity:.35}}
+  .ct{flex:1;min-width:0}
+  .ct .t{font-size:14px}
+  .chunk.done .ct .t{color:var(--dim)}
+  .ct .m{font-size:11.5px;color:var(--dim);margin-top:1px}
+  .cd{font-size:12px;color:var(--dim);white-space:nowrap;margin-top:2px}
+  .wave{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);
+        margin:12px 0 4px;font-weight:600}
+  .wave:first-child{margin-top:0}
+  .nums{display:flex;gap:20px;flex-wrap:wrap}
+  .n .v{font-size:22px;font-weight:650;line-height:1.2}
+  .n .l{font-size:11.5px;color:var(--dim)}
+  .bar{height:5px;border-radius:3px;background:var(--bg);border:1px solid var(--line);
+       overflow:hidden;margin-top:12px}
+  .bar i{display:block;height:100%;background:var(--done);transition:width .4s}
+  .row{font-size:13.5px;padding:3px 0}
+  .row .k{color:var(--dim);display:inline-block;min-width:130px}
+  .row .miss{color:var(--bad)}
+  .foot{color:var(--dim);font-size:12px;text-align:center;margin-top:16px}
+  .foot.stale{color:var(--warn)}
+  .empty{color:var(--dim);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap" id="root"><div class="card empty">Жду <code>state.js</code>…</div></div>
+
+<script>
+var STAGES = { setup:"Подготовка", plan:"План", build:"Сборка", final:"Приёмка", done:"Готово" };
+var LAST = 0;
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+function dur(ms){
+  if (!(ms > 0)) return "";
+  var m = Math.floor(ms/60000), h = Math.floor(m/60);
+  if (h) return h + " ч " + (m%60) + " мин";
+  if (m) return m + " мин";
+  return Math.floor(ms/1000) + " с";
+}
+function ago(ms){
+  var m = Math.floor(ms/60000);
+  if (m < 1) return "только что";
+  if (m < 60) return m + " мин назад";
+  var h = Math.floor(m/60);
+  if (h < 24) return h + " ч назад";
+  return Math.floor(h/24) + " дн назад";
+}
+function t(v){ var d = v ? new Date(v) : null; return (d && !isNaN(d)) ? d.getTime() : 0; }
+
+function render(){
+  var s = window.STATE;
+  if (!s) return;
+  var now = Date.now();
+  var started = t(s.startedAt), finished = t(s.finishedAt), updated = t(s.updatedAt);
+  var h = [];
+
+  var dials = [];
+  if (s.tier)  dials.push("ярус " + esc(s.tier));
+  if (s.mode)  dials.push(esc(s.mode));
+  if (s.depth) dials.push("глубина " + esc(s.depth));
+  var elapsed = started ? dur((finished || now) - started) : "";
+  if (elapsed) dials.push("<b>" + elapsed + "</b>");
+
+  h.push('<h1>' + esc(s.title || "Gucci Code") + '</h1>');
+  h.push('<div class="sub">' + dials.join(" · ") + '</div>');
+
+  // стадии
+  var st = (s.stages || []).map(function(x){
+    var cls = x.status || "pending";
+    var a = t(x.startedAt), b = t(x.finishedAt);
+    var tm = "";
+    if (cls === "done" && a && b) tm = dur(b - a);
+    else if (cls === "active" && a) tm = dur(now - a);
+    else if (cls === "skipped") tm = "пропущено";
+    return '<div class="st ' + cls + '"><div class="nm">' +
+           esc(STAGES[x.id] || x.id) + '</div><div class="tm">' + tm + '</div></div>';
+  }).join("");
+  if (st) h.push('<div class="card"><div class="stages">' + st + '</div></div>');
+
+  // куски
+  // группировка по волнам предполагает, что куски идут по возрастанию волны;
+  // сортируем сами, чтобы кусок не по порядку не нарисовал второй заголовок той же волны
+  var ch = (s.chunks || []).slice().sort(function(a, b){
+    return (a.wave || 0) - (b.wave || 0) || (a.id || 0) - (b.id || 0);
+  });
+  if (ch.length){
+    var body = "", lastWave = null;
+    ch.forEach(function(c){
+      if (c.wave != null && c.wave !== lastWave){
+        var n = ch.filter(function(x){ return x.wave === c.wave; }).length;
+        body += '<div class="wave">Волна ' + esc(c.wave) +
+                (n > 1 ? " — " + n + " параллельно" : "") + '</div>';
+        lastWave = c.wave;
+      }
+      var a = t(c.startedAt), b = t(c.finishedAt), d = "";
+      if (c.status === "done" && a && b) d = dur(b - a);
+      else if (c.status === "in-progress" && a) d = dur(now - a);
+      var meta = [];
+      if (c.requirements && c.requirements.length) meta.push(c.requirements.join(", "));
+      if (c.zone && c.zone.length) meta.push(c.zone.join(" · "));
+      body += '<div class="chunk ' + esc(c.status || "pending") + '">' +
+              '<div class="dot"></div><div class="ct"><div class="t">' +
+              esc(c.id) + " — " + esc(c.title) + '</div>' +
+              (meta.length ? '<div class="m">' + esc(meta.join("  ·  ")) + '</div>' : "") +
+              '</div><div class="cd">' + d + '</div></div>';
+    });
+    var done = ch.filter(function(c){ return c.status === "done"; }).length;
+    h.push('<div class="card"><h2>Куски — ' + done + " из " + ch.length +
+           '</h2>' + body + '<div class="bar"><i style="width:' +
+           Math.round(done / ch.length * 100) + '%"></i></div></div>');
+  } else if (s.tier === "T0"){
+    h.push('<div class="card empty">Задача небольшая — собирается сразу, без разбивки.</div>');
+  }
+
+  // требования
+  var r = s.requirements || {};
+  if (r.total){
+    var cells = [["всего", r.total], ["готово", r.done], ["заглушки", r.placeholder],
+                 ["отложено", r.deferred], ["снято", r.dropped]];
+    var nums = cells.filter(function(c){ return c[1]; }).map(function(c){
+      return '<div class="n"><div class="v">' + esc(c[1]) +
+             '</div><div class="l">' + c[0] + '</div></div>'; }).join("");
+    h.push('<div class="card"><h2>Требования</h2><div class="nums">' + nums + '</div>' +
+           '<div class="bar"><i style="width:' +
+           Math.round((r.done || 0) / r.total * 100) + '%"></i></div></div>');
+  }
+
+  // приёмка
+  var b = s.blind, acc = [];
+  if (s.tests) acc.push('<div class="row"><span class="k">Проверка</span> ' + esc(s.tests) + '</div>');
+  if (b) {
+    var parts = [];
+    if (b.ok != null)      parts.push(esc(b.ok) + " есть");
+    if (b.partial)         parts.push(esc(b.partial) + " частично");
+    if (b.missing)         parts.push('<b class="miss">' + esc(b.missing) + " нет</b>");
+    if (b.unchecked)       parts.push(esc(b.unchecked) + " не проверено");
+    acc.push('<div class="row"><span class="k">Слепая приёмка</span> ' +
+             (parts.length ? parts.join(" · ") : "—") + '</div>');
+  }
+  if (acc.length) h.push('<div class="card"><h2>Приёмка</h2>' + acc.join("") + '</div>');
+
+  // подвал
+  var stale = updated && (now - updated) > 45 * 60000;
+  h.push('<div class="foot' + (stale ? " stale" : "") + '">' +
+         (finished ? "Прогон завершён" : (updated ? "обновлено " + ago(now - updated) : "")) +
+         '</div>');
+
+  document.getElementById("root").innerHTML = h.join("");
+}
+
+// Перечитываем state.js, не перезагружая страницу: тег <script> работает и по file://,
+// в отличие от fetch — ровно поэтому состояние лежит как window.STATE, а не как JSON.
+function poll(){
+  if (window.STATE && window.STATE.finishedAt && LAST > 2) { render(); return; }
+  var el = document.createElement("script");
+  el.src = "state.js?t=" + Date.now();
+  el.onload = el.onerror = function(){ el.remove(); LAST++; render(); };
+  document.head.appendChild(el);
+}
+poll();
+setInterval(poll, 10000);
+setInterval(render, 1000);
+</script>
+</body>
+</html>
