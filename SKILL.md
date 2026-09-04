@@ -182,7 +182,7 @@ window.STATE =
 }
 ```
 
-**ISO 8601 with the offset**, from `date -Iseconds` at the moment the thing happens — a bare `14:50` gives an invalid date and a dead clock. **Never put a secret value in this file.**
+**ISO 8601 with the offset**, from `date -Iseconds` at the moment the thing happens, never estimated and never copied from another row — a bare `14:50` gives an invalid date and a dead clock, and a guessed one gives a dashboard that quietly disagrees with itself. **Never put a secret value in this file.**
 
 `title` is yours to write here, from what the user has already said — `brief.md` does not exist yet, and the dashboard opens before Phase 1 runs. Three or four words naming the thing, not a restatement of the задача.
 

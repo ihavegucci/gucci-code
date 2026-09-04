@@ -85,6 +85,15 @@ Ten to twenty lines, written from the finished code, not from the spec:
 
 The last thing the user reads. Plain language, no phase names, no process. **Every line comes from a file, not from memory** — the manifest, the blind check, `state.js`.
 
+**Before the report — two tests over `.gucci/state.js`, fix what they name:**
+
+```bash
+tail -n +2 .gucci/state.js | python -c "import json,sys;r=json.load(sys.stdin)['requirements'];s=r['done']+r['placeholder']+r['deferred']+r['dropped'];print('ok' if s==r['total'] else 'NOT-RECONCILED %d/%d'%(s,r['total']))"
+tail -n +2 .gucci/state.js | python -c "import json,sys;d=json.load(sys.stdin);t=[x for s in d['stages'] for x in (s.get('startedAt'),s.get('finishedAt')) if x];print('ok' if t==sorted(t) else 'OUT-OF-ORDER')"
+```
+
+First not `ok` → a row is stuck at `in-chunk`; set it `deferred` with its reason, the counter moves in the same edit. Second not `ok` → a stage's own clock is out of order; don't invent a fix for it, say so in one line in the report instead.
+
 ```markdown
 ## Готово
 
