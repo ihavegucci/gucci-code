@@ -134,4 +134,12 @@ Anything printed instead of `ok` is a row stuck at `open` or `in-chunk`; set it 
 
 ## 5. Close the run
 
-The last line of `plan.md`: `Прогон завершён: <date -Iseconds>`. It is what tells the next start in this repo that this run landed rather than stopped — without it, Phase 0 reads `.gucci/` as a run to resume. Nothing to stop and nothing to kill: there is no server here. Then stop.
+The last line of `plan.md`: `Прогон завершён: <date -Iseconds>`. It is what tells the next start in this repo that this run landed rather than stopped — without it, Phase 0 reads `.gucci/` as a run to resume.
+
+Then one last commit, by path exactly as in Phase 2 — never `git add -A`, never `push`: `.gucci/`, the memory file, and whatever the fixes after the blind check touched.
+
+```bash
+git add .gucci/ CLAUDE.md src/bot/ && git commit -qm "приёмка: телеграм-бот для заявок"
+```
+
+**Skipped, it undoes the run's ending:** the end-of-run line, the acceptance result, the memory file and the last fixes all sit in the working tree, and one `git checkout .` or a fresh clone turns a finished run back into one to resume. A refused commit is one line to the user, as in Phase 2, never a reason to skip hooks. Nothing to stop and nothing to kill: there is no server here. Then stop.
