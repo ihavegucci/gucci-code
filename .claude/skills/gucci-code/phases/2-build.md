@@ -8,7 +8,7 @@ The plan is cut. Now it gets built, chunk by chunk, and the one thing that must 
 
 **Send it down when, and only when:** the tier is **T2**, or the chunk plainly touches **more than ~4 files**, or it is genuinely independent of what you are already holding. At most **two in parallel**, and only with disjoint zones — two subagents writing one file overwrite each other and the loss is silent, which is the whole reason zones exist.
 
-At **T0** there is one chunk and it is the whole task: build it in one pass, run it, tick it, commit, go to Phase 3. The five moves below still apply — the chunk exists so that the gates and the dashboard have something to hold, not so that it gets treated as a plan.
+At **T0** there is one chunk and it is the whole task: build it in one pass, run it, tick it, commit, go to Phase 3. The four moves below still apply — the chunk exists so that the gates have something to hold, not so that it gets treated as a plan.
 
 ## What a subagent gets — paths, never pasted files
 
@@ -46,14 +46,14 @@ So the bar is written in the prompt below and belongs in «Границы» too:
 
 **Never ask for a diff and never read one.** `git diff --stat` is the most you ever look at. The return contract above is the whole of what you need to know — invariant 5 exists because a single pasted diff can cost more than the rest of the chunk.
 
-## After each chunk — five moves, in this order
+## After each chunk — four moves, in this order
 
 1. **Run it.** The project's own check — `npm test`, `pytest`, `go build`, whatever «Границы» names — **always truncated**: `<команда> 2>&1 | tail -20`. Nothing is `done` on a subagent's word alone. There is no reviewer here; this is what replaces one.
 
    **An empty run is not a pass.** `NO TESTS RAN`, `0 passed`, a build that compiled nothing — that is the harness reporting it had nothing to say, and reading it as green is how a chunk gets marked `done` on the strength of a command that never looked at it. Until the project has a real check, the acceptance criteria are what you run, by hand, one at a time.
 
    **Then check where it wrote**, one command, no diff: `git diff --stat` (or `--stat HEAD`). Files outside the chunk's zone mean the boundary did not hold — and in a parallel wave that is the one failure that destroys the other chunk's work silently, because nothing errors. Say what it touched, fix the ownership, and if two chunks in one wave overlapped, serialise the rest of that wave.
-2. **Tick the acceptance criteria** in `plan.md`, against what actually runs. A criterion you cannot check is a criterion that did not pass.
+2. **Tick it in `plan.md`**, against what actually runs: the acceptance criteria, the chunk's own box → `[x]`, the manifest rows it closed → `done`. A criterion you cannot check is a criterion that did not pass.
 3. **Fold the seams forward.** Anything the next chunk must use — a function name, a table, an event, a config key — one line into «Границы и правила проекта». This is what keeps two fresh contexts agreeing about one project.
 4. **Commit — and stage by path, never `git add -A`.** One chunk, one commit, plain language: `кусок 3: приём заявки от клиента`. Run the redaction gate over anything new in `.gucci/` before the first one.
 
@@ -64,7 +64,6 @@ So the bar is written in the prompt below and belongs in «Границы» too:
    ```
 
    Never `push`, never `reset`, never `checkout --`, never rewrite history: a commit can be undone by the user, the others cannot. If the commit refuses — hooks, signing, an unconfigured identity — say so in one line and carry on building. **A failed commit is not a failed chunk**, and it is never a reason to start passing flags that skip hooks.
-5. **`state.js`:** that chunk → `done` + `finishedAt`, `requirements.done` up, `updatedAt` moved; then the manifest rows it closed → `done`.
 
 Then **one plain line to the user** and straight into the next chunk: «Заявки принимаются — бот доводит клиента до номера заявки.» No table, no summary of your own work, no restating what is left.
 
@@ -72,7 +71,7 @@ Then **one plain line to the user** and straight into the next chunk: «Заяв
 
 **A failing check is repaired where it broke.** Inline chunk → you fix it. Subagent chunk → the same subagent gets one more turn with what failed, in one line. **Never repair a subagent's chunk by reading its code yourself** — that is the diff entering your context by the back door.
 
-**Two failed repairs on one chunk is a stop**, and a `BLOCKED` return counts as one of the two. Do not try a third with different phrasing, and do not restart it as a "fresh" chunk to reset the count — that is the same loop wearing a new number. Say in one line what does not work, mark the chunk `blocked` in `state.js`, move to the chunks that do not depend on it, and put it in the final report. A chunk quietly retried five times is how a run burns an afternoon with nothing to show.
+**Two failed repairs on one chunk is a stop**, and a `BLOCKED` return counts as one of the two. Do not try a third with different phrasing, and do not restart it as a "fresh" chunk to reset the count — that is the same loop wearing a new number. Say in one line what does not work, mark the chunk `[-]` in `plan.md` with that line, move to the chunks that do not depend on it, and put it in the final report. A chunk quietly retried five times is how a run burns an afternoon with nothing to show.
 
 **Chunks that depend on a `blocked` one are `blocked` too** — mark them, do not send them out to fail on a foundation that was never built, and count the whole group as one line in the report.
 
@@ -99,7 +98,7 @@ Work already built for a now-`dropped` requirement stays unless removing it is t
 ## What never happens during the build
 
 - **You do not read diffs**, and you do not ask for them.
-- **You do not re-read `plan.md` between chunks** — you wrote it this session. After a compaction, re-read `plan.md` and `state.js`, never the phase files.
+- **You do not re-read `plan.md` between chunks** — you wrote it this session. After a compaction, re-read `plan.md`, never the phase files.
 - **You do not open the next phase file.** Phase 3 is read when the last box is ticked.
 - **You do not invent a fact about the user** to unblock yourself. A missing price is a visible placeholder and a line in the report, never a plausible number.
 - **You do not deploy, publish, pay or message anyone** because it looked like the natural next step. That holds in `auto` too.

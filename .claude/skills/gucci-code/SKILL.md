@@ -25,7 +25,7 @@ Dictated idea → working project, in one dialogue, no stage-by-stage approvals.
 Rules, not advice. Breaking one costs money on every remaining turn.
 
 - **One phase file, when that phase starts.** Never ahead, never twice.
-- **After a compaction re-read `plan.md` and `state.js`, never the phases.** The thread was never in them.
+- **After a compaction re-read `plan.md`, never the phases.** The thread was never in them.
 - **Test output is always truncated:** `<команда> 2>&1 | tail -20`.
 - **Subagents get paths, never pasted files.** They have a filesystem.
 - **Never re-read a file you wrote this session.**
@@ -64,12 +64,12 @@ Everything typed after the invocation splits into **mode**, **depth** and **brie
 
 | Phase | Read | Produces |
 |---|---|---|
-| **0 Подготовка** | nothing — it is below | `state.js`, `dashboard.html`, mode announced |
+| **0 Подготовка** | nothing — it is below | memory file chosen, mode announced |
 | **1 План** | `phases/1-plan.md` | `brief.md`, `plan.md` — gates G1, G2 |
 | **2 Сборка** | `phases/2-build.md` | code, commits |
 | **3 Приёмка** | `phases/3-final.md` | blind acceptance (G3), memory file, report |
 
-Five stages on screen: `Подготовка · План · Сборка · Приёмка · Готово`. The user sees exactly these words and no others — one vocabulary, not two. **Единица работы — «кусок»**, never «таск» or «тикет»; «задача» is what the user ordered.
+Whenever the user sees a stage named, it is one of these words: `Подготовка · План · Сборка · Приёмка · Готово`, and no others — one vocabulary, not two. **Единица работы — «кусок»**, never «таск» or «тикет»; «задача» is what the user ordered.
 
 ## The gates
 
@@ -112,14 +112,13 @@ No per-chunk reviewer, no craft reviewer, no memory or ADR subagent. Their job i
 .gucci/
 ├── brief.md        the user's words verbatim after redaction; changes appended.
 │                   The only file the blind acceptance is ever given
-├── plan.md         manifest + short spec + chunks as checkboxes + project rules
-├── state.js        the run state — the only file the dashboard reads
-├── dashboard.html  copied once from the skill, never edited
+├── plan.md         manifest + short spec + chunks as checkboxes + project rules;
+│                   Phase 3 adds the acceptance result and the end-of-run line
 └── archive/<дата>/ the previous run's brief.md and plan.md, moved here by Phase 0
 CLAUDE.md | AGENTS.md   the project as the next session finds it, between markers
 ```
 
-Committed, not ignored — it is the user's record of what was promised and what was delivered. The live run always sits at those four fixed names; only the archive carries a date. No `--wip`, no per-chunk files, no `interfaces.md`, no ADRs, no HTTP server.
+Committed, not ignored — it is the user's record of what was promised and what was delivered. The live run always sits at those two fixed names; only the archive carries a date. No state file, no dashboard, no `--wip`, no per-chunk files, no `interfaces.md`, no ADRs, no HTTP server. **`plan.md` is the whole run state:** its boxes say where the build stands, its `Слепая приёмка:` line says the blind check has run, and its last line says whether the run has ended.
 
 ## Phase 0 — Подготовка
 
@@ -129,111 +128,25 @@ Nothing here is a question. Process decisions, one turn.
 
 **2. Is `.gucci/` already there?** Three different situations, and telling them apart is the whole of this step:
 
-- **Unchecked boxes in `plan.md` → this is a resume.** Read `brief.md`, `plan.md`, `state.js`, say where things stand in one line («Продолжаю: 4 из 7 готово, следующий — корзина»), and continue from the first unchecked box. Do not redo finished phases or re-ask answered questions. A chunk left half-done with nothing committed behind it starts over.
-- **Every box checked, or `finishedAt` is set → the previous run landed, and this is a new one.** **Archive before writing anything**, or the new brief silently destroys the record of what was promised last time:
+- **`plan.md` without a `Прогон завершён` line → this is a resume.** Read `brief.md` and `plan.md`, say where things stand in one line («Продолжаю: 4 из 7 готово, следующий — корзина»), and continue from the first chunk still marked `[ ]`. Every chunk closed → Phase 3; a `Слепая приёмка:` line already in `plan.md` means the blind check has run and does not run again. Do not redo finished phases or re-ask answered questions. A chunk left half-done with nothing committed behind it starts over.
+- **`plan.md` ends with `Прогон завершён: …` → the previous run landed, and this is a new one.** **Archive before writing anything**, or the new brief silently destroys the record of what was promised last time:
 
   ```bash
   A=$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)/.gucci
   P=$A/archive/$(date +%Y-%m-%d-%H%M)
   mkdir -p "$P" && mv "$A/brief.md" "$A/plan.md" "$P/" 2>/dev/null
   ```
-
-  Then a fresh `state.js` — new `startedAt`, `finishedAt` back to `null`, all five stages back to `pending` except `setup`, `chunks` empty, counters zeroed. **Reusing the finished run's `state.js` gives the user a dashboard that is all green before the new work has started**, and `finishedAt` left in place stops the page polling, so it never turns back.
-- **`state.js` written within the last few minutes and no other window of yours accounts for it** — the run is going on somewhere else. Say what you see and ask which one carries on. Do not archive, do not overwrite.
+- **`plan.md` changed within the last few minutes and no other window of yours accounts for it** — the run is going on somewhere else. Say what you see and ask which one carries on. Do not archive, do not overwrite.
 
 **3. Memory file.** `CLAUDE.md` → else `AGENTS.md` → else `CLAUDE.md`. Never a question. What this skill writes lives between `<!-- gucci-code:start -->` and `<!-- gucci-code:end -->`; **anything outside those markers is untouchable.**
 
 **4. Git.** No repo → `git init`, and `.env`, `.env.*` (not `.env.example`), `node_modules/`, `__pycache__/` ignored before anything is created. Dirty tree → say so in one line and carry on; never stash, reset or clean the user's work.
 
-**5. Raise the instruments.**
-
-```bash
-A=$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)/.gucci
-mkdir -p "$A"
-T=$(find -L ~/.claude/skills ~/.agents/skills .claude/skills -maxdepth 4 -iname dashboard.html -ipath '*gucci*' 2>/dev/null | head -1)
-if [ -n "$T" ]; then cp "$T" "$A/dashboard.html"; else echo "шаблон не найден — прогон пойдёт без дашборда"; fi
-```
-
-`if`, not `mkdir -p "$A" && [ -n "$T" ] && cp …`: that chain returns non-zero whenever the template is missing, and a Phase 0 that reports failure for an instrument it can live without is a Phase 0 you will start debugging instead of flying.
-
-`find -L`, because skills are installed as symlinks and a plain `find` reports nothing while the file sits right there. No template found → widen the search once by hand, then carry on without a dashboard: it is an instrument, not a gate.
-
-Then write `.gucci/state.js` — **first line exactly `window.STATE =`**, then indented JSON. That shape is not decoration: it loads through `<script src="state.js">`, which works over `file://` where `fetch` does not. That one fact is why this skill needs no server.
-
-```js
-window.STATE =
-{
-  "title": "Телеграм-бот для заявок на ремонт",
-  "mode": "semi", "depth": "normal", "tier": null,
-  "startedAt": "2026-08-29T14:02:06+03:00",
-  "updatedAt": "2026-08-29T14:02:06+03:00",
-  "finishedAt": null,
-  "stages": [
-    { "id": "setup", "status": "active", "startedAt": "2026-08-29T14:02:06+03:00" },
-    { "id": "plan",  "status": "pending" },
-    { "id": "build", "status": "pending" },
-    { "id": "final", "status": "pending" },
-    { "id": "done",  "status": "pending" }
-  ],
-  "requirements": { "total": 0, "done": 0, "placeholder": 0, "deferred": 0, "dropped": 0 },
-  "chunks": [],
-  "tests": null,
-  "blind": null
-}
-```
-
-**ISO 8601 with the offset**, from `date -Iseconds` at the moment the thing happens, never estimated and never copied from another row — a bare `14:50` gives an invalid date and a dead clock, and a guessed one gives a dashboard that quietly disagrees with itself. **Never put a secret value in this file.**
-
-`title` is yours to write here, from what the user has already said — `brief.md` does not exist yet, and the dashboard opens before Phase 1 runs. Three or four words naming the thing, not a restatement of the задача.
-
-Three fields start `null` and are filled later; each is written by exactly one place, and the dashboard shows nothing until it is:
-
-- **`tier`** — by Phase 1 the moment the tier is decided, **before the cut**. Until it is there the header has no ярус at all.
-- **`tests`** — by Phase 3, one line: `"npm test — 14 passed"`.
-- **`blind`** — by Phase 3, the tally of the blind acceptance: `{ "ok": 10, "partial": 1, "missing": 1, "unchecked": 0 }`.
-
-Then open it once, by you — the user should not be told where a file is and sent to find it:
-
-```bash
-D="$A/dashboard.html"
-W=$(cygpath -w "$D" 2>/dev/null || echo "$D")
-open "$D" 2>/dev/null || xdg-open "$D" 2>/dev/null \
-  || powershell -NoProfile -c "Start-Process '$W'" 2>/dev/null \
-  || echo "открой вручную: $W"
-```
-
-**`cygpath -w` is what makes the Windows branch work at all.** In Git Bash `$A` is a POSIX path like `/c/Users/…`, and neither PowerShell nor Explorer can open one — without the conversion the launcher fails silently and even the printed path is unusable. On macOS and Linux `cygpath` does not exist, `W` falls back to `$D`, and `open` / `xdg-open` handle it before the PowerShell branch is ever reached.
-
-A real browser loads `state.js` from beside it, so the clocks tick with no server. **Opened exactly once per flight** — never re-opened, never refreshed; the page re-reads `state.js` every ten seconds itself. A failure is not an error: print the path and carry on. Skip opening when `$SSH_CONNECTION` or `$CI` is set.
-
-**6. The update ritual — for the rest of the run.** Edit the affected rows of `state.js` and move `updatedAt`. That is all: nothing to mirror, nothing to restart.
-
-| When | What |
-|---|---|
-| entering a phase | that stage → `active` + `startedAt`; the one you left → `done` + `finishedAt` |
-| launching a chunk | → `in-progress` + `startedAt`, **before** any code is written |
-| chunk committed | → `done` + `finishedAt` |
-| a chunk goes back for a fix | → `repair`; two failed repairs → `blocked` |
-| **any manifest row changes status** | the matching counter in `requirements` |
-
-**The counters move with the manifest, not at the end.** `done`, `placeholder`, `deferred` and `dropped` are each written the moment a row takes that status — a row set to `placeholder` in the briefing and counted in Phase 3 is a dashboard that spent the whole run claiming the work was cleaner than it was. `total` never moves after Phase 1 except when the user adds a `G##` row.
-
-**Prove it still parses after every edit**, in the same turn:
-
-```bash
-tail -n +2 "$A/state.js" | python -m json.tool >/dev/null && echo ok
-```
-
-A `state.js` broken by an edit takes the dashboard to a blank screen and, worse, takes the resume with it — that file is what a compacted context reads to find out where the run is. It fails silently: nothing in your session errors, and the damage surfaces an hour later as a dashboard that stopped moving. If the check does not print `ok`, re-read the file and fix it before anything else. No python on the machine → skip the check and be correspondingly careful.
-
-Anchor every edit on the `"id"` line above the field you are changing — `"status": "pending"` appears once per stage and once per chunk, and `replace_all` rewrites every row in one stroke. A stage the run walked past gets `skipped` **with a reason**, never left `pending`: a stage that never moves reads as a stuck build. `startedAt` goes in when the thing starts, not when it ends — an interval with a start and no end is what makes the clock run.
-
-**7. Announce, once, and do not wait for a reply.** The only place the dials are ever named.
+**5. Announce, once, and do not wait for a reply.** The only place the dials are ever named.
 
 ```
 Ярус T1 · режим полуавтомат · глубина обычная.
 Спрошу только то, что в задаче не определено, дальше соберу сам.
-Дашборд открыл — .gucci/dashboard.html, обновляется сам.
 Переключить в любой момент: «полный автомат» · «погриль меня» · «строго по брифу» · «проработай глубоко».
 ```
 

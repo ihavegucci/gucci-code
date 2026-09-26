@@ -69,9 +69,7 @@ Three of these are the same shape and mean different things, and getting them wr
 
 **How fine to cut.** One requirement = one thing that can independently be true or false. «Бот принимает заявки и складывает их в таблицу» → **two** rows: one can work while the other does not. «Красивый современный дизайн» → **one**, inherently untestable; either a question turns it into something checkable, or it stays a recorded matter of taste.
 
-Then one line — «Разобрал задачу на 23 требования, держу их под контролем до конца» — and `requirements.total` into `state.js`. No table in the chat.
-
-**Every later status change moves its counter in the same edit** — `placeholder`, `deferred` and `dropped` as they happen in the briefing below, `done` during the build. Counted at the end instead, they describe a run the user already stopped watching.
+Then one line — «Разобрал задачу на 23 требования, держу их под контролем до конца». No table in the chat.
 
 ## 4. The questions
 
@@ -134,11 +132,11 @@ Calibration only: `semi` usually lands between two and eight, `interview` ten to
 
 ## 6. The cut
 
-Decide the tier from **what has to be built** (SKILL.md), **write it into `state.js` as `tier` before cutting anything**, then cut to it. Written first because the dashboard has no ярус until it is there, and because everything below reads the tier to decide how much to cut.
+Decide the tier from **what has to be built** (SKILL.md), **write it as the first line of «Куски» in `plan.md` before cutting anything**, then cut to it. Written first because everything below reads the tier to decide how much to cut, and after a compaction that line is what says whether chunks go to subagents.
 
-At **T0 nothing is cut apart, but the single pass is still chunk 1** — one row in `plan.md` and one in `state.js`, titled after the whole task, carrying every live requirement and the acceptance criteria. To the user you still say «Задача небольшая, собираю сразу, без разбивки»; the chunk is bookkeeping, not a plan.
+At **T0 nothing is cut apart, but the single pass is still chunk 1** — one row in `plan.md`, titled after the whole task, carrying every live requirement and the acceptance criteria. To the user you still say «Задача небольшая, собираю сразу, без разбивки»; the chunk is bookkeeping, not a plan.
 
-**This is not ceremony — without it T0 cannot pass its own gates.** G1 in `auto` forbids a single `open` row, and G2 requires every requirement to sit in a chunk; a T0 that cuts literally nothing leaves every row `open` and outside any chunk, so the two gates fail by construction on the tier this skill calls the common one. One row costs a line and makes both checks mean something. It also gives the dashboard a progress bar instead of an empty list.
+**This is not ceremony — without it T0 cannot pass its own gates.** G1 in `auto` forbids a single `open` row, and G2 requires every requirement to sit in a chunk; a T0 that cuts literally nothing leaves every row `open` and outside any chunk, so the two gates fail by construction on the tier this skill calls the common one. One row costs a line and makes both checks mean something.
 
 Every chunk is a **narrow but complete path through every layer it touches** — data, logic, interface, tests — not a horizontal slice of one layer. When it is done, something works end to end that did not before, and you can show it.
 
@@ -150,10 +148,12 @@ Every chunk is a **narrow but complete path through every layer it touches** —
 
 **The merge pass is mandatory.** After the draft, before writing anything: merge adjacent chunks touching the same files, any chunk under three criteria with a natural parent, and chains where B is blocked by A and A alone demos nothing. A draft that lands at 12 and merges to 6 was a T1 job pretending to be T2 — normal, and the reason this pass exists. **Cutting too fine feels careful and is the opposite:** every extra boundary is another chance for two contexts to disagree.
 
-**Waves, at T2 only.** `wave = 1 + max(wave of its blockers)`; then split each wave by zone — two chunks in one wave that would write the same files cannot run together, so the later one moves to the next wave. Same files → serialise, always: two subagents editing one file overwrite each other and the loss is silent. A wave of one is a normal answer. Waves are *discovered* in the dependency graph, never designed into it, and assigned once — renumbering mid-run makes rows jump on the dashboard and reads as the agent losing the plan.
+**Waves, at T2 only.** `wave = 1 + max(wave of its blockers)`; then split each wave by zone — two chunks in one wave that would write the same files cannot run together, so the later one moves to the next wave. Same files → serialise, always: two subagents editing one file overwrite each other and the loss is silent. A wave of one is a normal answer. Waves are *discovered* in the dependency graph, never designed into it, and assigned once — renumbering mid-run reads as the agent losing the plan.
 
 ```markdown
 ## Куски
+
+**Ярус:** T2
 
 ### [ ] 3 — Приём заявки от клиента
 **Требования:** R01, R01.1 · **Blocked by:** 1, 2 · **Зона:** `src/bot/` · **Волна:** 2
@@ -177,14 +177,9 @@ The verbatim brief quote is not decoration: it is the last thing standing betwee
 
 **Gate G2.** *Forward:* every live requirement appears in ≥1 chunk's Требования line — a requirement in no chunk does not get built. *Backward:* every chunk names ≥1 requirement, or a spec decision that traces to one; a chunk tracing to nothing is work nobody ordered. *Complete:* every chunk has a zone, at T2 a wave, and no two chunks in one wave share a zone.
 
-Then set every covered row to `in-chunk` with its number, and **publish the chunks to `state.js` before a line of code is written**:
+Then set every covered row to `in-chunk` with its number.
 
-```json
-{ "id": 3, "title": "Приём заявки от клиента", "requirements": ["R01","R01.1"],
-  "blockedBy": [1,2], "wave": 2, "zone": ["src/bot/"], "status": "pending" }
-```
-
-A build running while the dashboard still says nothing was cut is broken instruments, and it breaks them at the moment the user is most likely to look.
+**The box in a chunk's heading is the run state.** `[ ]` not done yet · `[x]` committed · `[-]` `blocked`, with one line why after the title. There is no other record of where the build stands — a resume continues from the first `[ ]`.
 
 ## 7. Showing it
 

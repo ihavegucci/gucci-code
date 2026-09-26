@@ -6,7 +6,7 @@ Everything until now measured the build against **your paraphrase** of the за�
 
 Not the chunk you just finished — the project. Its test command, its build, its linter, whatever «Границы и правила проекта» names, truncated as always: `<команда> 2>&1 | tail -20`. Then start it the way the user will and confirm it comes up.
 
-A red test here is not a formality to note in the report. Fix it — Phase 2's rules still apply — and only then go on. The result goes into `state.js` as `tests`, one line: `"npm test — 14 passed"`.
+A red test here is not a formality to note in the report. Fix it — Phase 2's rules still apply — and only then go on. The result opens a new last section of `plan.md`, `## Приёмка`, as one line: `Проверка: npm test — 14 passed`.
 
 **The memory file is written after this, in step 3, and that order is load-bearing.** On a repeat run in the same repo it already carries an skill-written description of the project — which is your paraphrase, in the one place the blind check would happily read it. Never write it before the check.
 
@@ -42,7 +42,7 @@ It is given **`.gucci/brief.md` and the repository, and nothing else** — not `
 
 **It runs once.** Fix what it found, prove the fix by running the code, and write the rest into the report — never by sending the checker back in. It would be looking at a repository that has changed since, so what returns is a fresh opinion, not confirmation; there is no answer it can give that ends the loop, and each lap costs more than every instruction in this skill together. A finding too big to fix that way is a line in «Что пошло не по плану», and a new run if the user wants it.
 
-The tally goes into `state.js` as `blind` — `{ "ok": 10, "partial": 1, "missing": 1, "unchecked": 0 }`, counted over the requirements **the checker found in the brief**, not over your manifest. Anything it qualified is `partial`; a run that files every caveat as `ok` puts a clean green line on the screen over a build that fails on the user's real data. The dashboard shows `missing` in red, which is the point: it is the one number the run cannot argue with.
+The tally goes into «Приёмка» the moment the checker returns — `Слепая приёмка: есть 10 · частично 1 · нет 1 · не смог проверить 0`, one line per disagreement under it — counted over the requirements **the checker found in the brief**, not over your manifest. Written then and not later, because after a compaction that line is the only proof the check has already run. Anything it qualified is `partial`; a run that files every caveat as `ok` puts a clean line in the report over a build that fails on the user's real data. `нет` is the one number the run cannot argue with.
 
 **Ask for the answer short.** On a one-file project this check cost ~50k tokens — more than every instruction in this skill put together, and on a T0 run it is the single largest expense of the flight. It is still worth it, and it is still not optional; it is the reason the last line of the prompt forbids fixing, suggesting and writing code, and the reason nothing here asks it for a second opinion.
 
@@ -83,16 +83,15 @@ Ten to twenty lines, written from the finished code, not from the spec:
 
 ## 4. The report
 
-The last thing the user reads. Plain language, no phase names, no process. **Every line comes from a file, not from memory** — the manifest, the blind check, `state.js`.
+The last thing the user reads. Plain language, no phase names, no process. **Every line comes from a file, not from memory** — the manifest and the «Приёмка» section of `plan.md`.
 
-**Before the report — two tests over `.gucci/state.js`, fix what they name:**
+**Before the report — one test over the manifest, fix what it names:**
 
 ```bash
-tail -n +2 .gucci/state.js | python -c "import json,sys;r=json.load(sys.stdin)['requirements'];s=r['done']+r['placeholder']+r['deferred']+r['dropped'];print('ok' if s==r['total'] else 'NOT-RECONCILED %d/%d'%(s,r['total']))"
-tail -n +2 .gucci/state.js | python -c "import json,sys;d=json.load(sys.stdin);t=[x for s in d['stages'] for x in (s.get('startedAt'),s.get('finishedAt')) if x];print('ok' if t==sorted(t) else 'OUT-OF-ORDER')"
+grep -E '^\|.*\| *(open|in-chunk) *\|' .gucci/plan.md || echo ok
 ```
 
-First not `ok` → a row is stuck at `in-chunk`; set it `deferred` with its reason, the counter moves in the same edit. Second not `ok` → a stage's own clock is out of order; don't invent a fix for it, say so in one line in the report instead.
+Anything printed instead of `ok` is a row stuck at `open` or `in-chunk`; set it `deferred` with its reason.
 
 ```markdown
 ## Готово
@@ -135,8 +134,6 @@ First not `ok` → a row is stuck at `in-chunk`; set it `deferred` with its reas
 - **No apologising, no process, no phase names, no «как я работал».**
 - Secrets are named, never shown — through the last line of the run.
 
-## 5. Close the instruments
+## 5. Close the run
 
-In `state.js`: the `final` stage → `done`, **the `done` stage → `done` as well** (never `active` — a finished run showing its last stage as still running is the one thing the dashboard exists to make impossible), `finishedAt` set, `updatedAt` moved. `finishedAt` is what freezes the clocks and stops the page polling; a finished run whose timer keeps counting reads as a build that never ended.
-
-Nothing to stop and nothing to kill: there is no server here. Say the path once if the user may want it later, and stop.
+The last line of `plan.md`: `Прогон завершён: <date -Iseconds>`. It is what tells the next start in this repo that this run landed rather than stopped — without it, Phase 0 reads `.gucci/` as a run to resume. Nothing to stop and nothing to kill: there is no server here. Then stop.
