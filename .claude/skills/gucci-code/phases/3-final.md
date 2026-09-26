@@ -48,9 +48,11 @@ The tally goes into «Приёмка» the moment the checker returns — `Сл�
 
 ## 3. The project memory — what the next session finds
 
-Between `<!-- gucci-code:start -->` and `<!-- gucci-code:end -->` in the memory file chosen in Phase 0. **Everything outside those markers is untouchable**, and if the markers are already there from an earlier run you replace what is between them, never append beside them.
+Between `<!-- gucci-code:start -->` and `<!-- gucci-code:end -->` in the memory file chosen in Phase 0. **Everything outside those markers is untouchable.** Exactly one such block per file: two whole blocks → merged into one where the first stood. A lone or broken marker → never guess where it ends — that guess deletes the user's text: write a fresh block at the end of the file, leave the fragment as it is, and say so in one line of the report.
 
-Ten to twenty lines, written from the finished code, not from the spec:
+**It is a snapshot of the project as it is now, never a log of how it got there.** The old block is the starting point, never something to add to: every line of it is brought to what the code is now — corrected, replaced or deleted — and the block describes the whole project, not just what this run built. A small fix in a big project changes a line or two; it does not shrink the block down to the fix. Nothing about runs goes in: no dates, no chunk numbers, no requirement IDs, no «добавлено», no «в прошлый раз». History already has two homes, `.gucci/archive/` and `git log`; a third copy in a file loaded into every session is what turns it into a dump.
+
+At most twenty lines, written from the finished code, not from the spec:
 
 ```markdown
 <!-- gucci-code:start -->
@@ -61,6 +63,7 @@ Ten to twenty lines, written from the finished code, not from the spec:
 ## Как запустить
 
 `npm start` — нужен `.env` с TELEGRAM_BOT_TOKEN и GOOGLE_SHEET_ID. Тесты: `npm test`.
+Заглушки, которые надо заполнить, ищи по `— впиши]`.
 
 ## Как устроено
 
@@ -71,15 +74,10 @@ Ten to twenty lines, written from the finished code, not from the spec:
 
 - Таблица вместо базы: пользователю нужно видеть заявки самому.
 - Статус раз в минуту — Google Sheets не отдаёт его в реальном времени.
-
-## Что не сделано
-
-- Админки нет: в задаче её не было, заявки смотрят в таблице.
-- Цвета студии — заглушки в `src/styles/brand.css`.
 <!-- gucci-code:end -->
 ```
 
-«Что решено и почему» is the only part of `.gucci/` worth outliving the run. The spec is worthless the day the work ships; the reasoning inside it is worth something for years and dies with the folder unless this section carries it out. This skill has no ADRs — this is where they went.
+«Как устроено» names directories, not files — a file list is stale by the next commit. **«Что решено и почему» holds only what the code still obeys, six lines at most:** a decision this run reversed is replaced, not kept beside its successor; one the code no longer reflects is dropped. It is the only part of `.gucci/` worth outliving the run — the reasoning dies with the folder unless it is carried here — but it earns its place by being true today, not by having been decided once. What was left undone belongs in the report, not here: it is stale the day the user fills the stub. The one exception is placeholders still in the code — if there are any, one line in «Как запустить» says how to find them, by the mark they actually carry; none left → no line.
 
 ## 4. The report
 

@@ -115,7 +115,7 @@ No per-chunk reviewer, no craft reviewer, no memory or ADR subagent. Their job i
 ├── plan.md         manifest + short spec + chunks as checkboxes + project rules;
 │                   Phase 3 adds the acceptance result and the end-of-run line
 └── archive/<дата>/ the previous run's brief.md and plan.md, moved here by Phase 0
-CLAUDE.md | AGENTS.md   the project as the next session finds it, between markers
+CLAUDE.md | AGENTS.md   the project as it is now, one block between markers, rewritten each run
 ```
 
 Committed, not ignored — it is the user's record of what was promised and what was delivered. The live run always sits at those two fixed names; only the archive carries a date. No state file, no dashboard, no `--wip`, no per-chunk files, no `interfaces.md`, no ADRs, no HTTP server. **`plan.md` is the whole run state:** its boxes say where the build stands, its `Слепая приёмка:` line says the blind check has run, and its last line says whether the run has ended.
@@ -128,7 +128,7 @@ Nothing here is a question. Process decisions, one turn.
 
 **2. Is `.gucci/` already there?** Three different situations, and telling them apart is the whole of this step:
 
-- **`plan.md` without a `Прогон завершён` line → this is a resume.** Read `brief.md` and `plan.md`, say where things stand in one line («Продолжаю: 4 из 7 готово, следующий — корзина»), and continue from the first chunk still marked `[ ]`. Every chunk closed → Phase 3; a `Слепая приёмка:` line already in `plan.md` means the blind check has run and does not run again. Do not redo finished phases or re-ask answered questions. A chunk left half-done with nothing committed behind it starts over.
+- **`plan.md` without a `Прогон завершён` line → this is a resume.** Read `brief.md` and `plan.md`, say where things stand in one line («Продолжаю: 4 из 7 готово, следующий — корзина»), and continue from the first chunk still marked `[ ]`. No chunks in `plan.md` yet → Phase 1 stopped short: carry on from where `plan.md` ends, never on to the build. Every chunk closed → Phase 3; a `Слепая приёмка:` line already in `plan.md` means the blind check has run and does not run again. Do not redo finished phases or re-ask answered questions. A chunk left half-done with nothing committed behind it starts over.
 - **`plan.md` ends with `Прогон завершён: …` → the previous run landed, and this is a new one.** **Archive before writing anything**, or the new brief silently destroys the record of what was promised last time:
 
   ```bash
