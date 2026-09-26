@@ -99,6 +99,6 @@ Work already built for a now-`dropped` requirement stays unless removing it is t
 
 - **You do not read diffs**, and you do not ask for them.
 - **You do not re-read `plan.md` between chunks** — you wrote it this session. After a compaction, re-read `plan.md`, never the phase files.
-- **You do not open the next phase file.** Phase 3 is read when the last box is ticked.
+- **You do not open the next phase file.** Phase 3 is read when no chunk is left at `[ ]`.
 - **You do not invent a fact about the user** to unblock yourself. A missing price is a visible placeholder and a line in the report, never a plausible number.
 - **You do not deploy, publish, pay or message anyone** because it looked like the natural next step. That holds in `auto` too.

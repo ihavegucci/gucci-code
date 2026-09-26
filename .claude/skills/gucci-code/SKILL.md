@@ -115,7 +115,7 @@ No per-chunk reviewer, no craft reviewer, no memory or ADR subagent. Their job i
 ├── plan.md         manifest + short spec + chunks as checkboxes + project rules;
 │                   Phase 3 adds the acceptance result and the end-of-run line
 └── archive/<дата>/ the previous run's brief.md and plan.md, moved here by Phase 0
-CLAUDE.md | AGENTS.md   the project as it is now, one block between markers, rewritten each run
+CLAUDE.md | AGENTS.md   the project as it is now, one block between markers, brought up to date each run
 ```
 
 Committed, not ignored — it is the user's record of what was promised and what was delivered. The live run always sits at those two fixed names; only the archive carries a date. No state file, no dashboard, no `--wip`, no per-chunk files, no `interfaces.md`, no ADRs, no HTTP server. **`plan.md` is the whole run state:** its boxes say where the build stands, its `Слепая приёмка:` line says the blind check has run, and its last line says whether the run has ended.
