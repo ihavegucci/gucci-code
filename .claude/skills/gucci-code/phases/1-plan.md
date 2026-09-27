@@ -35,7 +35,7 @@ The redacted brief, **word for word**, into `.gucci/brief.md`.
 
 ## 3. `plan.md` — the manifest
 
-One file holds the manifest, the spec and the chunks. Write the manifest **before any question is asked** — the questions are themselves a re-encoding of the brief, so the anchor is dropped first.
+One file holds the manifest, the spec and the chunks. Write the manifest **before any question is asked, any code is read, or any agent is launched** — in `auto` too, where no question ever comes to trigger it. Questions and scouting are both re-encodings of the brief, so the anchor is dropped first; a manifest written after the scouting is already a summary of the code.
 
 Split the brief into the smallest units that can independently be true or false about the finished product. Every row carries **the exact words it came from**.
 
@@ -61,7 +61,7 @@ Split the brief into the smallest units that can independently be true or false 
 - **`deferred` is not `dropped`.** Postponing is yours; cancelling is not.
 - **Silence never cancels anything.** A requirement the user stopped mentioning is still live — forgetting and deciding must not look alike.
 
-**Marks.** `R##` from the brief, untouchable · `R##.n` deepening one of them, uncapped, this is the main work of the spec · `R##i` clearly implied but never said · `G##` the user's own words said later, untouchable like `R##` · `A##` a new capability you thought of, must name a parent, **forbidden at `strict`** · `D##` a constraint the build itself demonstrated, added in Phase 2 and only from a real finding.
+**Marks.** `R##` from the brief, untouchable · `R##.n` deepening one of them, uncapped, this is the main work of the spec · `R##i` clearly implied but never said · `G##` the user's own words said later, untouchable like `R##` · `A##` a new capability you thought of, must name a parent, **forbidden at `strict`** · `D##` a constraint the build itself demonstrated, added in Phase 2 and only from a real finding · `F##` a finding of the scouting (§5), naming the `R##` it serves.
 
 Three of these are the same shape and mean different things, and getting them wrong is how a requirement quietly dies: **`G##` is the user's words, `A##` is your idea, `D##` is what the code proved.** A wish of theirs filed as `D##` retires a requirement nobody cancelled; an idea of yours filed as `G##` puts your taste into the one column meant to hold only theirs.
 
@@ -97,7 +97,20 @@ Calibration only: `semi` usually lands between two and eight, `interview` ten to
 
 **A gate is redone once.** If a row still will not resolve on the second pass, it becomes `deferred` with the reason written down and appears in the final report. Going round a third time does not produce a new answer — it produces a run that never reaches the code.
 
-## 5. The spec — short, and inside `plan.md`
+## 5. Scouting — only when the задача is to check or fix what exists
+
+«Проверь», «почини», «проведи аудит», «найди, почему падает» — here the chunks cannot be cut from the brief, because what needs fixing is not in it yet. So after the questions and before the spec, the code is surveyed — never before the manifest is written.
+
+- **Inline by default:** read it, run the tests, start the thing. Scouts (SKILL.md) only when the codebase is too large to hold — at most three, read-only, on disjoint areas.
+- **Every finding is an `F##` row in the manifest**, the `R##` it serves in the quote column, severity · cause · consequence in Основание:
+  `| F03 | → R01 | in-chunk | high: повторный клик шлёт оплату дважды — двойное списание | 4 |`
+- **Depth sets how far the survey goes:** `strict` — only what the brief names; `normal` — what plainly bears on it; `deep` — every area.
+- **A finding whose fix changes what the user sees, pays or can do is a fork** — asked per mode, or `ПРИНЯТО ЗА ТЕБЯ` in `auto`, like any other.
+- **`F##` never retires anything.** A finding not fixed is `deferred` with its reason and lands in the report.
+
+Then the cut is made from the findings: each chunk closes one or more `F##`.
+
+## 6. The spec — short, and inside `plan.md`
 
 **Skipped entirely at T0**: there is nothing a separate document would say that the manifest does not. At T1 and T2 it is four sections and stays under a page.
 
@@ -130,7 +143,7 @@ Calibration only: `semi` usually lands between two and eight, `interview` ten to
 
 **Depth decides how thorough the stories are, never how much there is to build.** A `deep` spec for a landing page is a long section about one page — still T0, still one pass.
 
-## 6. The cut
+## 7. The cut
 
 Decide the tier from **what has to be built** (SKILL.md), **write it as the first line of «Куски» in `plan.md` before cutting anything**, then cut to it. Written first because everything below reads the tier to decide how much to cut, and after a compaction that line is what says whether chunks go to subagents.
 
@@ -175,14 +188,14 @@ The verbatim brief quote is not decoration: it is the last thing standing betwee
 
 **Avoid file paths and code snippets** — they go stale faster than the chunk does. The exception is a structure prose states worse than code: a schema, a state machine, a type shape.
 
-**Gate G2.** *Forward:* every live requirement appears in ≥1 chunk's Требования line — a requirement in no chunk does not get built. *Backward:* every chunk names ≥1 requirement, or a spec decision that traces to one; a chunk tracing to nothing is work nobody ordered. *Complete:* every chunk has a zone, at T2 a wave, and no two chunks in one wave share a zone.
+**Gate G2.** *Forward:* every live requirement appears in ≥1 chunk's Требования line — a requirement in no chunk does not get built; every `F##` sits in a chunk or is `deferred` with its reason. *Backward:* every chunk names ≥1 requirement, or a spec decision that traces to one; a chunk tracing to nothing is work nobody ordered. *Complete:* every chunk has a zone, at T2 a wave, and no two chunks in one wave share a zone.
 
 Then set every covered row to `in-chunk` with its number.
 
 **The box in a chunk's heading is the run state.** `[ ]` not done yet · `[x]` committed · `[-]` `blocked`, with one line why after the title. There is no other record of where the build stands — a resume continues from the first `[ ]`.
 
-## 7. Showing it
+## 8. Showing it
 
-Write the files first — **a chunk that exists only in the dialogue is not a chunk.** Then one screen, plain language, no technical detail, one line per chunk saying what the user will be able to do when it lands. Parallelism gets one line and only if it is true: «6 кусков в 4 волны, часть пойдёт параллельно».
+Write the files first — **a chunk that exists only in the dialogue is not a chunk.** Then one screen, plain language, no technical detail — the tier in one line first («Ярус T1: три куска»), then one line per chunk saying what the user will be able to do when it lands. Parallelism gets one line and only if it is true: «6 кусков в 4 волны, часть пойдёт параллельно».
 
 Then «Показываю план и начинаю. Скажи "стоп", если что-то не так» — and start. **Do not wait for approval**; waiting is the failure mode this skill exists to remove. Never promise a countdown: you cannot hold a pause, so a stated delay is a promise you will break. `interview` gets the same screen — the questions were the point of that mode, the chunk list was not; `auto` gets it as a notification.
