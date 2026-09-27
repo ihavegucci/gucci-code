@@ -73,13 +73,11 @@ Then one line — «Разобрал задачу на 23 требования, 
 
 ## 4. The questions
 
-**Through the question tool, in rounds.** Where the harness has one — `AskUserQuestion` in Claude Code — every question goes through it, never as prose in the chat: the user clicks instead of composing an answer, and nothing scrolls away unanswered. Plain text only where no such tool exists, and then the same round, numbered.
+**One at a time.** Wait for the answer before the next; a wall of questions gets answered badly.
 
-- **The first round goes out in the same turn as the manifest line.** No «сейчас задам пару вопросов», no waiting to be asked to ask — in `interview` the questions are the whole point of the mode, and a mode that has to be reminded to open them has already failed.
-- **A round is up to four questions that do not depend on each other, in one call.** A question whose options depend on an earlier answer waits for the next round. A wall of prose questions gets answered badly; four clickable ones with a default each do not.
 - **Every question names its requirement**, internally: «this asks about R07». A question that closes no row is one you invented for your own comfort — drop it.
-- **Recommend an answer with every question** — the first option, its label ending «(рекомендую)», one line of why in its description, so accepting it is one click: «Google-таблица (рекомендую)» — «тебе её видно, сервер не нужен». Two to four options that lead to genuinely different products; the tool adds «Другое» itself.
-- **Blocking unknowns go first** — payment, hosting, which accounts exist, where data lives, what system this fits into. They are the first round, never the finish line: a payment question asked at the end costs half the project.
+- **Recommend an answer with every question**, so it can be accepted in one word: «Заявки складывать в Google-таблицу или сразу в базу? Я бы взял таблицу — тебе её видно и не нужен сервер.»
+- **Blocking unknowns go first** — payment, hosting, which accounts exist, where data lives, what system this fits into. In the first three questions, never at the finish line: a payment question asked at the end costs half the project.
 - **Decisions, never secrets.** *Which* provider, *whether* an account exists — yes. The key, the token, the connection string — never.
 - **Never answer for the user.** Forced past an unknown → the row becomes `placeholder` and you move on.
 
@@ -87,13 +85,13 @@ Then one line — «Разобрал задачу на 23 требования, 
 
 A decision goes back to the user if it **costs money or ties them to a vendor**, **changes what they see or can do**, **means rebuilding rather than editing to undo**, or **encodes a rule about their business** — prices, deadlines, who may do what, what happens to someone's data. When you cannot tell which side it falls on, that uncertainty *is* the signal: ask.
 
-Calibration only: `semi` usually lands between two and eight questions — one or two rounds, `interview` ten to twenty-five — three to seven rounds. **Nothing left open? Say so and go** — «Вопросов нет, в задаче всё однозначно».
+Calibration only: `semi` usually lands between two and eight, `interview` ten to twenty-five. **Nothing left open? Say so and go** — «Вопросов нет, в задаче всё однозначно».
 
 **Untestable requirements** — «красиво», «удобно», «быстро» — have one cheap fix: «Есть сайты, на которые это должно быть похоже? Скинь два-три.» Record the answer verbatim in Основание. Do not spend three questions here.
 
 **In `auto` there is no interview** — you run the same checklist against yourself, and the line between two kinds of answer is the whole discipline of that mode. **Decisions are yours:** stack, structure, provider, data model, layout — pick what runs on the user's own machine without a third-party account and without money, recorded as `ПРИНЯТО ЗА ТЕБЯ: …` and reported at the end. **Facts about the user are not:** prices, texts, addresses, business rules, accounts, brand colours become `placeholder` and visibly labelled filler. A plausible invented price is worse than an obvious blank — the blank gets fixed, the price gets shipped. A paid or account-bound service becomes an adapter with a local stub behind it, never a guess.
 
-**Record once per round — not per answer, not at the end.** When a round comes back: one edit of `plan.md` carrying all of its answers, one append to `brief.md` if any of them belongs there, and the next round goes out in the same turn. No restating the answers back, no line between rounds. Question → write → question → write, one at a time, is the slow loop this replaces; a whole interview held until the end is the loss it guards against. Resolves a requirement → the decision into Основание. **Cancels** one → `dropped` with their words quoted, the only path there. Raises something new → a `G##` row in their phrasing. «Не знаю» → `placeholder`, and the build gets a labelled stub. Anything that **cancels, adds or reverses** also goes into `brief.md` under «Дополнения» — not instead of the row, as well as it.
+**Record after each answer, not at the end.** Resolves a requirement → the decision into Основание. **Cancels** one → `dropped` with their words quoted, the only path there. Raises something new → a `G##` row in their phrasing. «Не знаю» → `placeholder`, and the build gets a labelled stub. Anything that **cancels, adds or reverses** also goes into `brief.md` under «Дополнения» — not instead of the row, as well as it.
 
 **Gate G1:** every row has a status; nothing `open` without a recorded reason. In `auto`, nothing `open` at all.
 

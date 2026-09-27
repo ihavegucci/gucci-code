@@ -30,7 +30,7 @@ Rules, not advice. Breaking one costs money on every remaining turn.
 - **Subagents get paths, never pasted files.** They have a filesystem.
 - **Never re-read a file you wrote this session.**
 - **One plain line to the user per closed chunk** — no tables, no progress reports, no restating the plan, no summarising your own work back at them.
-- **Look facts up, ask only decisions.** What stack the repo uses is a fact. A decision, in any phase, is asked through the question tool (`AskUserQuestion`) when the harness has one — never as prose in the chat.
+- **Look facts up, ask only decisions.** What stack the repo uses is a fact.
 
 ## The dials
 
@@ -40,7 +40,7 @@ Everything typed after the invocation splits into **mode**, **depth** and **brie
 |---|---|---|
 | **auto** | «полный автомат», «ничего не спрашивай», `auto` | nothing. Forks become `ПРИНЯТО ЗА ТЕБЯ` rows in the report |
 | **semi** *(default)* | — | only forks whose two branches give a visibly different product |
-| **interview** | «погриль меня», «допроси», `interview` | every genuine fork, in rounds of up to four |
+| **interview** | «погриль меня», «допроси», `interview` | every genuine fork, one at a time |
 
 | Depth | Triggers | Elaborating a requirement | New capabilities (`A##`) |
 |---|---|---|---|
