@@ -50,8 +50,6 @@ Everything typed after the invocation splits into **mode**, **depth** and **brie
 
 **There is no approval mode and no polish loop here** — both are pauses, and pauses are what this skill exists to remove. On «согласовывай каждый шаг» the honest answer is that this is not that tool; on «вылижи до эталона», that there is no polishing round, and the way to get one is to say what specifically is wrong and let it be a new run.
 
-**Plan mode is the one pause this skill accepts** — the user chose it, and its rules outrank these: only the plan file may be written. So Phase 0 and Phase 1 run *into the plan file* — the brief verbatim, then the manifest, then the questions, the scouting and the cut, in this skill's order — and every other write waits, the Phase 0 archive included. Say once that the build starts when plan mode is left. On leaving it, the first move is to put the brief and the plan into `.gucci/brief.md` and `.gucci/plan.md` exactly as they stand; then Phase 2. The explore agents plan mode asks for are the scouts below, under the same limits.
-
 ## Tiers — read from the product, never from the length of the brief
 
 | Tier | The product looks like | Chunks | Who writes the code |
@@ -101,11 +99,10 @@ Every loop in this skill has a floor, and they are collected here because the or
 
 The same logic is why there is no per-chunk reviewer here at all: a reviewer that can send work back is a loop, and a loop needs a counter more than it needs an opinion.
 
-## Subagents — three cases, and no others
+## Subagents — two cases, and no others
 
 1. **An executor per chunk — at T2, or any chunk clearly over ~4 files** that is independent of what you are holding. The reason is invariant 5 and nothing else. Below that, inline: a cold start costs 20–40k tokens of re-orientation, more than the chunk itself. At most two in parallel, only with disjoint zones.
 2. **The blind acceptance** — always, once, at the end.
-3. **Scouts — only when the задача is to check or fix what exists** and the codebase is too large to read inline. At most three, read-only, disjoint areas, launched only once the manifest exists. Each gets the paths to `brief.md` and `plan.md` and returns findings in the `F##` shape (`phases/1-plan.md`), never code, never diffs.
 
 No per-chunk reviewer, no craft reviewer, no memory or ADR subagent. Their job is done by running the code after every chunk and by G3.
 
@@ -127,7 +124,7 @@ Committed, not ignored — it is the user's record of what was promised and what
 
 Nothing here is a question. Process decisions, one turn.
 
-**1. Look before writing.** `git rev-parse --show-toplevel`; `CLAUDE.md` / `AGENTS.md`; `package.json` / `pyproject.toml` / `go.mod` / `Cargo.toml`; `.gucci/`. Anything readable is a fact, not a question. **Only these** — the code the задача is about is not opened, and no agent is launched, until the brief and the manifest are written in Phase 1.
+**1. Look before writing.** `git rev-parse --show-toplevel`; `CLAUDE.md` / `AGENTS.md`; `package.json` / `pyproject.toml` / `go.mod` / `Cargo.toml`; `.gucci/`. Anything readable is a fact, not a question.
 
 **2. Is `.gucci/` already there?** Three different situations, and telling them apart is the whole of this step:
 
@@ -145,10 +142,10 @@ Nothing here is a question. Process decisions, one turn.
 
 **4. Git.** No repo → `git init`, and `.env`, `.env.*` (not `.env.example`), `node_modules/`, `__pycache__/` ignored before anything is created. Dirty tree → say so in one line and carry on; never stash, reset or clean the user's work.
 
-**5. Announce, once, and do not wait for a reply.** The only place the dials are ever named — the tier is not one: it is decided in Phase 1 and said with the plan.
+**5. Announce, once, and do not wait for a reply.** The only place the dials are ever named.
 
 ```
-Режим полуавтомат · глубина обычная.
+Ярус T1 · режим полуавтомат · глубина обычная.
 Спрошу только то, что в задаче не определено, дальше соберу сам.
 Переключить в любой момент: «полный автомат» · «погриль меня» · «строго по брифу» · «проработай глубоко».
 ```
